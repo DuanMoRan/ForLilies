@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: gateway
+  session:
+    redis:
+      namespace: gateway:sessions
+  cloud:
+    gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origins: "http://127.0.0.1:3000" 
+            allowed-methods: "*"
+            allowed-headers: "*"
+            allow-credentials: true
+            max-age: 3600
+      routes:
+        - id: user-server
+          uri: "http:/127.0.0.1:8001"
+          predicates:
+            - Path=/user/**
+          filters:
+            - StripPrefix=1
+
+        - id: course-server
+          uri: "http:/127.0.0.1:8002"
+          predicates:
+            - Path=/course/**
+          filters:
+            - StripPrefix=1
+
+        - id: select-server
+          uri: "http:/127.0.0.1:8003"
+          predicates:
+            - Path=/select/**
+          filters:
+            - StripPrefix=1
+  
+debug: true
+
+logging:
+  file:
+    name: gateway.log
+  level:
+    '[org.springframework.cloud.gateway]': debug
+    '[org.springframework.security]': debug
