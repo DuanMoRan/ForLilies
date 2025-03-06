@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.dao.StudentMapper">
+    <!-- getStudents-->
+    <select id="getStudents" parameterType="Student" resultType="Student">
+        select studentNo , studentName , sex , phone , address , age from student
+        <trim prefix="where" prefixOverrides="and|or">
+            <if test="studentNo != null">and studentNo = #{studentNo}</if>
+            <if test="studentName != null">and studentName = #{studentName}</if>
+            <if test="sex != null">and sex = #{sex}</if>
+            <if test="phone != null">and phone = #{phone}</if>
+            <if test="address != null">and address = #{address}</if>
+            <if test="age != null">and age = #{age}</if>
+        </trim>
+    </select>
+    <!--getCourses-->
+    <select id="getCourse" parameterType="Student" resultType="Course">
+        select courseNo , courseName , detail from selectCourse 
+            inner join course on selectCourse.courerNo = course.courseNo
+            where studentNo = #{studentNo}
+    </select>
+
+    <!--findCourse-->
+    <select id="findCourse" parameterType="SelectCourse" resultType="Course">
+        select remainder from course where courseNo = #{courseNo}
+    </select>
+
+    <!--addCourse-->
+    <insert id="addCourse" parameterType="SelectCourse">
+        insert into selectCourse(studentNo , courseNo) values(#{studentNo} , #{courseNo})
+    </insert>
+
+    <!--decCourse-->
+    <delete id="dec" parameterType="SelectCourse">
+        delete from selectCourse where studentNo = #{studentNo} and courseNo = #{courseNo}
+    </delete>
+
+    <!--insertStudent-->
+    <insert id="insertStudent" parameterType="Student">
+        insert into student(studentNo , studentName , sex , phone , address , age)
+        values(#{studentNo} , #{studentName} , #{sex} , #{phone} , #{address} , #{age})
+    </insert>
+
+    <!--change-->
+    <update id="change" parameterType="Student">
+        update student set
+        <trim prefixOverrides=",">
+            <if test="studentName != null">, studentName = #{studentName}</if>
+            <if test="sex != null">, sex = #{sex}</if>
+            <if test="phone != null">, phone = #{phone}</if>
+            <if test="address != null">, address = #{address}</if>
+            <if test="age != null">, age = #{age}</if>
+        </trim>
+    </update>
+</mapper>
