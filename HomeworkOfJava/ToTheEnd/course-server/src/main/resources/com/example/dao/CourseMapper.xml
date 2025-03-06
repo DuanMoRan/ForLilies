@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.dao.CourseMapper">
+    <!--getAll-->
+    <select id="getAll" resultType="Course">
+        select courseNo , courseName , detail , remainder from course
+        <trim prefix="where" prefixOverrides="and|or">
+            <if test="courseNo != null"> and courseNo = #{courseNo}</if>
+            <if test="courseName != null"> and courseName = #{courseName}</if>
+        </trim>
+    </select>
+    <!--createCourse-->
+    <insert id="createCourse" parameterType="Course">
+        insert into course(courseNo , courseName , detail , remainder)
+        values(#{courseNo} , #{courseName} , #{detail} , #{remainder})
+    </insert>
+
+    <!--updateCourse-->
+    <update id="updateCourse" parameterType="Course">
+        update course set
+        <trim prefixOverrides=",">
+            <if test="courseNo != null">, courseNo = #{courseNo}</if>
+            <if test="courseName != null">, courseName = #{courseName}</if>
+            <if test="detail != null"> , detail = #{detail}</if>
+            <if test="remainder != null">, remainder = #{remainder}</if>
+        </trim>
+    </update>
+
+    <!--deteleCourse-->
+    <delete id="deteleCourse" parameterType="Course">
+        detele from course
+        <trim prefix="where" prefixOverrides="and|or">
+            <if test="courseNo != null"> and courseNo = #{courseNo}</if>
+            <if test="courseName != null"> and courseName = #{courseName}</if>
+        </trim>
+    </delete>
+
+    <!--add-->
+    <update id="add" parameterType="Course">
+        update course set remainder = remainder + 1 where courseNo = #{courseNo}
+    </update>
+
+    
+    <!--decreas-->
+    <update id="decreas" parameterType="Course">
+        update course set remainder = remainder - 1 where courseNo = #{courseNo}
+    </update>
+</mapper>
