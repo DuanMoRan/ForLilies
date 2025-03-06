@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: select-server
+  elasticsearch:
+    uris: https://localhost:9200
+    connection-timeout: 3000
+    username: elastic
+    password: Q39t7+OcB_GCKkRE3naK
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+
+server:
+  port: 8003
+
+debug: true
+
+logging:
+  file:
+    name: app.log
+  level:
+    '[org.springframework.data.elasticsearch]': debug
