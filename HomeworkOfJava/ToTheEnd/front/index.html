@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+  <script src="https://unpkg.com/vue@3"></script>
+  <script src="https://unpkg.com/element-plus"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+
+<style>
+  .show {
+    box-shadow: var(--el-box-shadow-dark);
+  }
+
+  .text-right {
+    text-align: right;
+  }
+</style>
+
+<body>
+  <div id="app">
+    <div class="common-layout">
+      <el-container>
+        <el-header class="show">
+          <el-col class="text-right">
+            <el-button type="text" title="login" @click="loginDialogVisible = true">登录 </el-button>
+
+            <el-button type="text" title="register" @click="registerDialogVisible = true">注册 </el-button>
+          </el-col>
+
+        </el-header>
+        <el-container>
+          <el-aside width="200px">Aside</el-aside>
+          <el-main>
+
+            <el-dialog v-model="loginDialogVisible" title="登录" width=30%>
+              <el-form ref="loginForm" :model="user" :rules="loginRules" label-width="80px">
+                <el-form-item label="用户编号" prop="studentNo">
+                  <el-input v-model.number="user.studentNo" type="number" placeholder="请输入数字编号" />
+                </el-form-item>
+
+                <el-form-item label="密码" prop="loginPwd">
+                  <el-input v-model="user.loginPwd" type="password" show-password placeholder="请输入密码" />
+                </el-form-item>
+                <el-button type="primary" @click="handleLogin">登录</el-button>
+              </el-form>
+
+            </el-dialog>
+
+            <el-dialog v-model="registerDialogVisible" title="注册" width=30%>
+              <el-form ref="registerForm" :model="user" :rules="registerRules" label-width="80px">
+                <el-form-item label="用户编号" prop="studentNo">
+                  <el-input v-model.number="user.studentNo" type="number" placeholder="请输入数字编号" />
+                </el-form-item>
+
+                <el-form-item label="密码" prop="loginPwd">
+                  <el-input v-model="user.loginPwd" type="password" show-password placeholder="请输入密码" />
+                </el-form-item>
+
+                <el-form-item label="手机号" prop="phone">
+                  <el-input v-model="user.phone" placeholder="请输入手机号" />
+                </el-form-item>
+                <el-button type="success" @click="handleRegister">注册</el-button>
+              </el-form>
+            </el-dialog>
+
+
+          </el-main>
+        </el-container>
+      </el-container>
+    </div>
+  </div>
+</body>
+<script>
+  axios.defaults.baseURL = 'http://localhost:8080/'
+
+  axios.defaults.withCredentials = true
+
+  axios.interceptors.request.use(config => {
+    const token = localStorage.getItem('XSRF-TOKEN')
+    if (token) {
+      config.headers['X-XSRF-TOKEN'] = token
+    }
+    return config
+  })
+  const app = Vue.createApp({
+    data() {
+      const phonePattern = /^(?:(?:\+|00)86)?1[3-9]\d{9}$/
+
+      const numberValidator = (rule, value, callback) => {
+        if (!Number.isInteger(value)) {
+          callback(new Error('必须为整数'))
+        } else {
+          callback()
+        }
+      }
+
+      const baseRules = {
+        studentNo: [
+          { required: true, message: '编号不能为空' },
+          { validator: numberValidator, trigger: 'blur' }
+        ],
+        loginPwd: [
+          { required: true, message: '密码不能为空', trigger: 'blur' }
+        ]
+      }
+
+
+      return {
+        user: {
+          studentNo: 0,
+          loginPwd: "",
+          phone: "",
+        },
+        loginRules: baseRules,
+        registerRules: {
+          ...baseRules,
+          phone: [
+            { required: true, message: '手机号不能为空' },
+            { pattern: phonePattern, message: '无效的手机号格式' }
+          ]
+        },
+        loginDialogVisible: false,
+        registerDialogVisible: false
+
+      }
+    },
+    methods: {
+      async handleLogin(loginData) {
+        try {
+          await axios.get('/user/login', {
+            withCredentials: true
+          })
+
+          const response = await axios.post('/user/login',
+            JSON.stringify(loginData),
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                'X-XSRF-TOKEN': getCsrfToken()
+              },
+              withCredentials: true
+            }
+          )
+
+          if (!response.data.falg) {
+            showErrorToast(response.data.message)
+          }
+        } catch (error) {
+          handleApiError(error)
+        }
+      },
+      getCsrfToken() {
+        return document.cookie
+          .split('; ')
+          .find(row => row.startsWith('XSRF-TOKEN='))
+          ?.split('=')[1]
+      },
+      async handleRegister(userData) {
+        try {
+          // 获取CSRF令牌
+          await axios.get('/user/register', {
+            withCredentials: true
+          })
+
+          const response = await axios.post('/user/register',
+            JSON.stringify(userData),
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                'X-XSRF-TOKEN': getCsrfToken()
+              },
+              withCredentials: true
+            }
+          )
+
+          if (response.data.success) {
+            showSuccessModal('注册成功，请登录')
+            this.registerDialogVisible = false
+            this.loginDialogVisible = true
+          } else {
+            showErrorToast(response.data.errors || response.data.message)
+          }
+        } catch (error) {
+          handleApiError(error)
+        }
+      }
+    }
+  });
+  app.use(ElementPlus);
+  app.mount("#app");
+</script>
+
+</html>
