@@ -9,7 +9,7 @@ import lombok.Data;
 @Document(indexName = "course")
 public class Course {
     @Id
-    private Integer courseNo;
+    private Long courseNo;
     private String courseName;
     private String detail;
 }
