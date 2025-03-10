@@ -3,7 +3,7 @@
 <mapper namespace="com.example.dao.StudentMapper">
     <!-- getStudents-->
     <select id="getStudents" parameterType="Student" resultType="Student">
-        select studentNo , studentName , sex , phone , address , age from student
+        select studentNo , studentName , sex , phone , address , age, loginPwd from student
         <trim prefix="where" prefixOverrides="and|or">
             <if test="studentNo != null">and studentNo = #{studentNo}</if>
             <if test="studentName != null">and studentName = #{studentName}</if>
@@ -11,12 +11,13 @@
             <if test="phone != null">and phone = #{phone}</if>
             <if test="address != null">and address = #{address}</if>
             <if test="age != null">and age = #{age}</if>
+            <if test="loginPwd != null">and loginPwd = #{loginPwd}</if>
         </trim>
     </select>
     <!--getCourses-->
-    <select id="getCourse" parameterType="Student" resultType="Course">
-        select courseNo , courseName , detail from selectCourse 
-            inner join course on selectCourse.courerNo = course.courseNo
+    <select id="getCourses" parameterType="Student" resultType="Course">
+        select selectCourse.courseNo , courseName , detail from selectCourse 
+            inner join course on selectCourse.courseNo = course.courseNo
             where studentNo = #{studentNo}
     </select>
 
@@ -37,8 +38,8 @@
 
     <!--insertStudent-->
     <insert id="insertStudent" parameterType="Student">
-        insert into student(studentNo , studentName , sex , phone , address , age)
-        values(#{studentNo} , #{studentName} , #{sex} , #{phone} , #{address} , #{age})
+        insert into student(studentNo ,studentName , sex, loginPwd , phone)
+        values(#{studentNo} , #{studentName} , #{sex}, #{loginPwd} , #{phone})
     </insert>
 
     <!--change-->
@@ -51,5 +52,6 @@
             <if test="address != null">, address = #{address}</if>
             <if test="age != null">, age = #{age}</if>
         </trim>
+        where studentNo = #{studentNo}
     </update>
 </mapper>
