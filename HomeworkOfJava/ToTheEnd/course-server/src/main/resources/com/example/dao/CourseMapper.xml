@@ -19,20 +19,16 @@
     <update id="updateCourse" parameterType="Course">
         update course set
         <trim prefixOverrides=",">
-            <if test="courseNo != null">, courseNo = #{courseNo}</if>
             <if test="courseName != null">, courseName = #{courseName}</if>
             <if test="detail != null"> , detail = #{detail}</if>
             <if test="remainder != null">, remainder = #{remainder}</if>
         </trim>
+        where courseNo = #{courseNo}
     </update>
 
     <!--deteleCourse-->
-    <delete id="deteleCourse" parameterType="Course">
-        detele from course
-        <trim prefix="where" prefixOverrides="and|or">
-            <if test="courseNo != null"> and courseNo = #{courseNo}</if>
-            <if test="courseName != null"> and courseName = #{courseName}</if>
-        </trim>
+    <delete id="deleteCourse" parameterType="Course">
+        delete from course where courseNo = #{courseNo}
     </delete>
 
     <!--add-->
