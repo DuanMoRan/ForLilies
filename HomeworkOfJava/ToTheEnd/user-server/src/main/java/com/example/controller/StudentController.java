@@ -10,14 +10,13 @@ import com.example.entity.Message;
 import com.example.entity.ResponseData;
 import com.example.entity.SelectCourse;
 import com.example.entity.Student;
+import com.example.tool.JwtUtil;
+
 import com.example.queues.SenderServer;
 import com.example.service.StudentService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
-
-
 
 
 @RestController
@@ -28,6 +27,9 @@ public class StudentController{
 
     @Autowired
     private SenderServer server;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @PostMapping("space")
     public ResponseData findAll(@RequestBody Student student) {
@@ -63,13 +65,18 @@ public class StudentController{
 
     @PostMapping("login")
     public ResponseData login(@RequestBody Student student) {
-        if(service.login(student)) return new ResponseData(true, null, "登录成功");
+        System.out.println(student);
+        if(service.login(student)){
+            String jwt = jwtUtil.generateToken(student.getStudentNo().toString());
+            return new ResponseData(true, jwt, "登录成功");
+        }
         else return new ResponseData(false, null, "登录失败");
     }
 
     @PutMapping("change/detail")
     public ResponseData changeDetail(@RequestBody Student student){
-        if(service.change(student)) return new ResponseData(true, null, "修改成功");
+
+        if(service.change(student))return new ResponseData(true, null , "修改成功");
         else return new ResponseData(false, null, "修改失败");
     }
 
