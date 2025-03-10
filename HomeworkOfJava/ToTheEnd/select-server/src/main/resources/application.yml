@@ -5,7 +5,7 @@ spring:
     uris: https://localhost:9200
     connection-timeout: 3000
     username: elastic
-    password: Q39t7+OcB_GCKkRE3naK
+    password: NpMHk6AhrrQzCEvL_5Xb
   rabbitmq:
     host: localhost
     port: 5672
