@@ -10,13 +10,11 @@ import com.example.entity.CourseDTO;
 import com.example.entity.Message;
 import com.example.entity.Page;
 import com.example.entity.ResponseData;
-import com.example.entity.Total;
 import com.example.queues.SenderServer;
 import com.example.service.CourseService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -40,10 +38,7 @@ public class CourseController {
     }
 
     @PostMapping("find")
-    public ResponseData find(@RequestBody Total total) {
-        Page page = total.getPage();
-        Course course = total.getCourse();
-        PageHelper.startPage(page.getPageNo(), page.getSize());
+    public ResponseData find(@RequestBody Course course) {
         List<Course> courses = service.find(course);
         if (courses.isEmpty())
             return new ResponseData(false, new PageInfo<>(courses), "查询失败");
@@ -69,7 +64,7 @@ public class CourseController {
             return new ResponseData(false, null, "更新失败");
     }
 
-    @DeleteMapping("delete")
+    @PostMapping("delete")
     public ResponseData deleteCourse(@RequestBody Course course) {
         if (service.deleteCourse(course)) {
             send("d", course);
