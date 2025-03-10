@@ -1,9 +1,6 @@
 spring:
   application:
     name: gateway
-  session:
-    redis:
-      namespace: gateway:sessions
   cloud:
     gateway:
       default-filters:
@@ -18,21 +15,21 @@ spring:
             max-age: 3600
       routes:
         - id: user-server
-          uri: "http:/127.0.0.1:8001"
+          uri: http://127.0.0.1:8001
           predicates:
             - Path=/user/**
           filters:
             - StripPrefix=1
 
         - id: course-server
-          uri: "http:/127.0.0.1:8002"
+          uri: http://127.0.0.1:8002
           predicates:
             - Path=/course/**
           filters:
             - StripPrefix=1
 
         - id: select-server
-          uri: "http:/127.0.0.1:8003"
+          uri: http://127.0.0.1:8003
           predicates:
             - Path=/select/**
           filters:
