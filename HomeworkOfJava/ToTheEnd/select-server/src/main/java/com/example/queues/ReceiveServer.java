@@ -18,8 +18,9 @@ public class ReceiveServer {
     @RabbitListener(queues = "select-server")
     public void receiveMessage(Message message){
         ObjectMapper objectMapper = new ObjectMapper();
-        Course course = objectMapper.convertValue(objectMapper, Course.class);
-        switch (message.getOpeartor()) {
+        Course course = objectMapper.convertValue(message.getData(), Course.class);
+
+        switch (message.getOperator()) {
             case "c":
                 repository.save(course);
                 break;
