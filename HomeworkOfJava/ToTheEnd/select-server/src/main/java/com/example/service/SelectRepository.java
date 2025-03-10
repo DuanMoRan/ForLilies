@@ -9,24 +9,20 @@ import org.springframework.stereotype.Repository;
 
 import com.example.entity.Course;
 
-
 @Repository
-public interface SelectRepository extends ElasticsearchRepository<Course , Integer>{
-    List<Course> findByDetail(String detail , Pageable pageable);
+public interface SelectRepository extends ElasticsearchRepository<Course, Long> {
+    List<Course> findByDetail(String detail, Pageable pageable);
 
     @Query("""
-            {
-            "query":{
-                "match":{
-                    "detail":{
-                        "query" : "?0",,
-                        "operator" : "or"
+                {
+                    "match":{
+                        "detail":{
+                            "query" : "?0",
+                            "operator" : "or"
+                        }
                     }
-                }
             }
-        }
-        """)
-    List<Course> findByKeywords(String detail , Pageable pageable);
-
+            """)
+    List<Course> findByKeywords(String detail, Pageable pageable);
 
 }
