@@ -13,8 +13,107 @@
     box-shadow: var(--el-box-shadow-dark);
   }
 
-  .text-right {
-    text-align: right;
+  .course-list {
+    margin: -10px;
+  }
+
+  .course-item {
+    padding: 10px;
+  }
+
+  .course-card {
+    position: relative;
+    padding-bottom: 100%;
+    transition: transform 0.3s ease;
+    background-image: url('images/404cat.png');
+    background-size: cover;
+    background-position: top;
+    background-repeat: no-repeat;
+
+  }
+
+  .course-name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .course-name span {
+    margin-right: auto;
+    font-weight: bold;
+  }
+
+  .course-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .pagination-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    min-height: 40px;
+  }
+
+  .el-aside {
+    height: calc(100vh - 60px);
+    background-color: #fff;
+    box-shadow: var(--el-box-shadow-light);
+  }
+
+  .el-menu {
+    margin-top: 20px;
+    border-right: none;
+  }
+
+  .el-menu-item {
+    padding: 0 10px !important;
+  }
+
+  .custom-layout {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .search-col {
+    display: flex;
+    justify-content: center;
+    margin-left: auto;
+  }
+
+  .action-col {
+    display: flex;
+    justify-content: flex-end;
+
+  }
+
+  .edit-btn {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    z-index: 2;
+    margin-right: 10px;
+    padding: 4px 8px;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+  }
+
+  .avatar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
   }
 </style>
 
@@ -23,15 +122,50 @@
     <div class="common-layout">
       <el-container>
         <el-header class="show">
-          <el-col class="text-right">
-            <el-button type="text" title="login" @click="loginDialogVisible = true">登录 </el-button>
+          <el-row wide="100%">
+            <el-col :span="12" class="search-col">
+              <el-input v-model="searchKeyword" placeholder="输入搜索内容" clearable>
+                <template #append>
+                  <el-button type="primary" @click="fetchSearchResults" icon="Search" />
+                </template>
+              </el-input>
+            </el-col>
 
-            <el-button type="text" title="register" @click="registerDialogVisible = true">注册 </el-button>
-          </el-col>
+            <el-col class="action-col" :span="6" v-if="!isLoggedIn">
+              <el-button type="text" title="login" @click="loginDialogVisible = true">登录 </el-button>
 
+              <el-button type="text" title="register" @click="register">注册 </el-button>
+            </el-col>
+            <el-col v-if="isLoggedIn" class="avatar" :span="6">
+              <el-avatar src="images/cat.png" alt="用户头像" @click="show">
+
+              </el-avatar>
+            </el-col>
+
+          </el-row>
         </el-header>
         <el-container>
-          <el-aside width="200px">Aside</el-aside>
+          <el-aside width="200px">
+
+            <el-menu>
+              <el-menu-item @click="searchChange">
+                <span>
+                  {{ searchMode ? '关键词搜索' : '详情搜索' }}
+                </span>
+              </el-menu-item>
+              <el-menu-item v-if="isSearchActive" @click="exitSearchMode">
+                退出搜索模式
+              </el-menu-item>
+              <el-menu-item v-if="isLoggedIn" @click="openAddDialog">
+                <span>新增课程</span>
+              </el-menu-item>
+              <!-- 在 el-menu 内添加 -->
+              <el-menu-item @click="fetchSelectedCourses" v-if="isLoggedIn">
+                <span>已选课程</span>
+              </el-menu-item>
+            </el-menu>
+
+          </el-aside>
           <el-main>
 
             <el-dialog v-model="loginDialogVisible" title="登录" width=30%>
@@ -48,24 +182,116 @@
 
             </el-dialog>
 
-            <el-dialog v-model="registerDialogVisible" title="注册" width=30%>
-              <el-form ref="registerForm" :model="user" :rules="registerRules" label-width="80px">
+            <el-dialog v-model="userDialogVisible" :title="userDialogType === 'register' ? '注册' : '个人信息'">
+              <el-form :model="user" :rules="formRules" ref="userForm">
                 <el-form-item label="用户编号" prop="studentNo">
-                  <el-input v-model.number="user.studentNo" type="number" placeholder="请输入数字编号" />
+                  <el-input v-model="user.studentNo" :disabled="dialogType === 'edit'"></el-input>
                 </el-form-item>
-
                 <el-form-item label="密码" prop="loginPwd">
-                  <el-input v-model="user.loginPwd" type="password" show-password placeholder="请输入密码" />
+                  <el-input v-model="user.loginPwd"></el-input>
+                </el-form-item>
+                <el-form-item label="姓名" prop="studentName">
+                  <el-input v-model="user.studentName"></el-input>
+                </el-form-item>
+                <el-form-item label="性别" prop="sex">
+                  <el-radio-group v-model="user.sex">
+                    <el-radio label="男">男</el-radio>
+                    <el-radio label="女">女</el-radio>
+                  </el-radio-group>
+                </el-form-item>
+                <el-form-item label="手机号" prop="phone">
+                  <el-input v-model="user.phone"></el-input>
                 </el-form-item>
 
-                <el-form-item label="手机号" prop="phone">
-                  <el-input v-model="user.phone" placeholder="请输入手机号" />
+                <el-form-item v-if="userDialogType === 'edit'" label="地址" prop="address">
+                  <el-input v-model="user.address"></el-input>
                 </el-form-item>
-                <el-button type="success" @click="handleRegister">注册</el-button>
+                <el-form-item v-if="userDialogType === 'edit'" label="年龄" prop="age">
+                  <el-input-number v-model="user.age" :min="0"></el-input-number>
+                </el-form-item>
               </el-form>
+              <div slot="footer">
+                <el-button @click="dialogVisible = false">取消</el-button>
+                <el-button type="primary" @click="userSubmitForm('userForm')">{{ userDialogType === 'register' ? '注册' :
+                  '更新'}}</el-button>
+              </div>
             </el-dialog>
 
+            <el-dialog v-model="dialogVisible" :title="dialogType === 'add' ? '新增课程' : '修改课程'">
+              <el-form :model="course" :rules="formRules" ref="addForm">
+                <el-form-item label="课程编号" prop="code">
+                  <el-input v-model="course.courseNo" :disabled="dialogType === 'edit'"></el-input>
+                </el-form-item>
+                <el-form-item label="课程名称" prop="name">
+                  <el-input v-model="course.courseName"></el-input>
+                </el-form-item>
+                <el-form-item label="课程详情" prop="details">
+                  <el-input type="textarea" v-model="course.detail"></el-input>
+                </el-form-item>
+                <el-form-item label="可选人数" prop="maxStudents">
+                  <el-input-number v-model="course.remainder" :min="1"></el-input-number>
+                </el-form-item>
+              </el-form>
+              <div slot="footer">
+                <el-button @click="dialogVisible = false">取消</el-button>
+                <el-button type="primary" @click="submitForm('addForm')">提交</el-button>
+              </div>
+            </el-dialog>
 
+            <el-dialog v-model="courseDetailVisible" title="课程详情" width="40%">
+              <el-form v-if="selectedCourse">
+                <el-form-item label="课程编号">
+                  <span>{{ selectedCourse.courseNo }}</span>
+                </el-form-item>
+                <el-form-item label="课程名称">
+                  <span>{{ selectedCourse.courseName }}</span>
+                </el-form-item>
+                <el-form-item label="课程详情">
+                  <p style="white-space: pre-wrap;">{{ selectedCourse.detail }}</p>
+                </el-form-item>
+                <el-form-item label="可选人数">
+                  <span>{{ selectedCourse.remainder }}</span>
+                </el-form-item>
+              </el-form>
+              <template #footer>
+                <el-button type="primary" @click="selectCourse">选课</el-button>
+              </template>
+            </el-dialog>
+
+            <!-- 在 el-main 内添加 -->
+            <el-dialog v-model="selectedCoursesVisible" title="已选课程" width="60%">
+              <el-table :data="selectedCourses" border>
+                <el-table-column prop="courseNo" label="课程编号"></el-table-column>
+                <el-table-column prop="courseName" label="课程名称"></el-table-column>
+                <el-table-column label="操作">
+                  <template #default="scope">
+                    <el-button type="danger" @click="deleteSelectedCourse(scope.row.courseNo)">退选</el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </el-dialog>
+
+            <el-row :gutter="20" class="course-list">
+              <el-col v-for="item in filteredCourses" :key="item.courseNo" :xs="24" :sm="12" :md="8" :lg="6"
+                class="course-item">
+                <div class="course-card" @click="showCourseDetail(item)">
+                  <div class="course-name">
+                    <span>{{ item.courseName }}</span>
+                    <div class="action-buttons">
+                      <el-button type="text" v-if="isLoggedIn" @click.stop="openEditDialog(item.courseNo)">修改</el-button>
+                      <el-button type="text" v-if="isLoggedIn" @click.stop="deleteCourse(item.courseNo)">删除</el-button>
+                    </div>
+                  </div>
+
+                </div>
+              </el-col>
+            </el-row>
+
+            <div class="pagination-container">
+              <el-pagination :total="this.total" :current-page="this.page.pageNo" :page-size="this.page.size"
+                @current-change="handlePaginationChange" @size-change="handleSizeChange" :page-sizes="[1, 2, 5]"
+                layout="sizes, prev, pager, next" />
+            </div>
           </el-main>
         </el-container>
       </el-container>
@@ -75,15 +301,36 @@
 <script>
   axios.defaults.baseURL = 'http://localhost:8080/'
 
-  axios.defaults.withCredentials = true
-
   axios.interceptors.request.use(config => {
-    const token = localStorage.getItem('XSRF-TOKEN')
+
+    const token = localStorage.getItem('jwt');
     if (token) {
-      config.headers['X-XSRF-TOKEN'] = token
+      config.headers.Authorization = `Bearer ${token}`;
     }
-    return config
+    return config;
+  });
+
+  axios.interceptors.response.use(
+    response => response,
+    error => {
+      if (error.response.status === 401) {
+        localStorage.removeItem('jwt');
+        this.isLoggedIn = false;
+        this.$router.push('/login');
+      }
+      return Promise.reject(error);
+    }
+  );
+
+  const api = axios.create({
+    baseURL: 'http://localhost:8080/',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+    },
+    transformRequest: [data => JSON.stringify(data)]
   })
+
   const app = Vue.createApp({
     data() {
       const phonePattern = /^(?:(?:\+|00)86)?1[3-9]\d{9}$/
@@ -109,46 +356,85 @@
 
       return {
         user: {
-          studentNo: 0,
-          loginPwd: "",
-          phone: "",
+          studentNo: null,
+          studentName: null,
+          sex: null,
+          loginPwd: null,
+          address: null,
+          age: null,
+          phone: null,
         },
         loginRules: baseRules,
         registerRules: {
           ...baseRules,
+          studentName: [
+            { required: true, message: '姓名不能为空', trigger: 'blur' }
+          ],
+          sex: [
+            { required: true, message: '性别不能为空', trigger: 'change' }
+          ],
           phone: [
             { required: true, message: '手机号不能为空' },
             { pattern: phonePattern, message: '无效的手机号格式' }
+          ],
+          age: [
+            { pattern: numberValidator, trigger: 'blur' }
           ]
         },
         loginDialogVisible: false,
-        registerDialogVisible: false
+        registerDialogVisible: false,
+        isLoggedIn: false,
+        searchKeyword: '',
+        searchMode: false,
+        dialogType: 'add',
+        dialogVisible: false,
+        formRules: {
+          code: [{ required: true, message: '请输入课程编号', trigger: 'blur' }],
+          name: [{ required: true, message: '请输入课程名称', trigger: 'blur' }],
+          maxStudents: [{ type: 'number', required: true, message: '请填写有效人数' }]
+        },
+        course: {
+          courseNo: '',
+          courseName: '',
+          detail: '',
+          remainder: 0
+        },
+        courses: [],
+        page: {
+          pageNo: 1,
+          size: 2
+        },
+        filteredCourses: [],
+        isSearchActive: false,
+        total: 0,
+        userDialogVisible: false,
+        userDialogType: 'register',
+        courseDetailVisible: false,
+        selectedCourse: null,
+        selectedCoursesVisible: false,
+        selectedCourses: [],
 
       }
     },
     methods: {
-      async handleLogin(loginData) {
+      async handleLogin() {
         try {
-          await axios.get('/user/login', {
-            withCredentials: true
-          })
+          const res = await api.post('/user/login', {
+            studentNo: this.user.studentNo,
+            loginPwd: this.user.loginPwd
+          });
 
-          const response = await axios.post('/user/login',
-            JSON.stringify(loginData),
-            {
-              headers: {
-                'Content-Type': 'application/json',
-                'X-XSRF-TOKEN': getCsrfToken()
-              },
-              withCredentials: true
-            }
-          )
-
-          if (!response.data.falg) {
-            showErrorToast(response.data.message)
+          console.log(res.data.data)
+          if (res.data.flag) {
+            const realToken = res.data.data;
+            localStorage.setItem('jwt', realToken);
+            this.loginDialogVisible = false;
+            this.isLoggedIn = true;
+          } else {
+            this.$message.error('登录失败：' + (res.data.message || '未知错误'));
           }
         } catch (error) {
-          handleApiError(error)
+          this.$message.error(`请求失败：${error.response?.data?.message || error.message}`);
         }
       },
       getCsrfToken() {
@@ -157,35 +443,273 @@
           .find(row => row.startsWith('XSRF-TOKEN='))
           ?.split('=')[1]
       },
-      async handleRegister(userData) {
+      async handlerRegister() {
         try {
-          // 获取CSRF令牌
-          await axios.get('/user/register', {
-            withCredentials: true
-          })
 
-          const response = await axios.post('/user/register',
-            JSON.stringify(userData),
-            {
-              headers: {
-                'Content-Type': 'application/json',
-                'X-XSRF-TOKEN': getCsrfToken()
-              },
-              withCredentials: true
-            }
-          )
+          console.log(this.user)
+          const response = await api.put('/user/register', this.user)
 
-          if (response.data.success) {
-            showSuccessModal('注册成功，请登录')
+          if (response.data.flag) {
             this.registerDialogVisible = false
             this.loginDialogVisible = true
           } else {
             showErrorToast(response.data.errors || response.data.message)
           }
         } catch (error) {
-          handleApiError(error)
+          this.handleApiError(error)
+        }
+      },
+      async openEditDialog(courseNo) {
+        try {
+
+          const res = await api.post('/course/find', {
+            courseNo: courseNo
+          });
+          course = res.data.data.list[0]
+          console.log(course)
+          this.course = {
+            courseNo: course.courseNo,
+            courseName: course.courseName,
+            detail: course.detail,
+            remainder: course.remainder
+          };
+          this.total = res.data.data.total;
+          this.dialogType = 'edit';
+          this.dialogVisible = true;
+        } catch (error) {
+          this.handleApiError(error, '获取课程信息失败');
+        }
+      },
+
+      async submitForm() {
+        try {
+          const url = this.dialogType === 'add'
+            ? '/course/create'
+            : '/course/update'
+          const method = this.dialogType === 'add' ? 'post' : 'put'
+
+          await api[method](url, this.course)
+          this.$message.success('操作成功')
+          this.dialogVisible = false
+          this.resetForm()
+          this.fetchCourses()
+        } catch (error) {
+          this.handleApiError(error, '操作失败')
+        }
+      },
+
+      resetForm() {
+        this.course = {
+          code: '',
+          name: '',
+          details: '',
+          maxStudents: 30
+        }
+        this.dialogType = 'add'
+      },
+      async deleteCourse(courseNo) {
+        try {
+          await api.post('/course/delete', {
+            courseNo: courseNo
+          });
+          this.$message.success('删除成功');
+          this.deleteDialogVisible = false;
+          this.fetchCourses();
+        } catch (error) {
+          this.$message.error('删除失败');
+        }
+      },
+      async fetchCourses() {
+        try {
+          const res = await api.post('/course/find/all', {
+            pageNo: this.page.pageNo,
+            size: this.page.size
+          });
+          this.total = res.data.data.total
+          console.log(res.data.data.list)
+          this.filteredCourses = res.data.data.list;
+          this.isSearchActive = false;
+        } catch (error) {
+          this.handleApiError(error);
+        }
+      },
+      async fetchSearchResults() {
+        try {
+          if (!this.searchKeyword.trim()) {
+            this.fetchCourses();
+            return;
+          }
+          this.isSearchActive = true;
+          const searchRequest = {
+            page: { ...this.page },
+            course: {
+              detail: this.searchKeyword
+            }
+          };
+
+          console.log(this.searchKeyword)
+          console.log(searchRequest)
+          console.log(this.isSearchActive)
+
+          const endpoint = this.searchMode ? 'detail' : 'keywords';
+          const res = await api.post(`/select/find/${endpoint}`, searchRequest);
+          this.filteredCourses = res.data.data;
+
+          console.log(this.filteredCourses)
+        } catch (error) {
+          this.handleApiError(error);
+        }
+      },
+
+      handlePaginationChange(newPage) {
+        console.log(newPage)
+        this.page.pageNo = newPage
+        if (this.isSearchActive) this.fetchSearchResults();
+        else this.fetchCourses()
+      },
+
+      handleSizeChange(newSize) {
+        console.log(newSize)
+        this.page.size = newSize
+        if (this.isSearchActive) this.fetchSearchResults();
+        else this.fetchCourses()
+      },
+
+      showErrorToast(msg) {
+        this.$message.error(msg || '操作失败')
+      },
+      showSuccessModal(msg) {
+        this.$message.success(msg || '操作成功')
+      },
+
+      exitSearchMode() {
+        this.isSearchActive = false;
+        this.searchKeyword = '';
+        this.page.pageNo = 1;
+        this.fetchCourses();
+      },
+
+      handleApiError(error) {
+        if (error.response) {
+          this.$message.error(`请求失败：${error.response.data.message}`);
+        } else {
+          this.$message.error(`网络错误：${error.message}`);
+        }
+      },
+
+      openAddDialog() {
+        this.dialogType = "add"
+        this.dialogVisible = true
+        console.log(this.dialogType)
+        console.log(this.dialogVisible)
+      },
+
+      searchChange() {
+        this.searchMode = !this.searchMode
+      },
+
+      register() {
+        this.userDialogType = 'register';
+        this.userDialogVisible = true;
+      },
+
+      async show() {
+
+        try {
+
+          const res = await api.post('/user/space', {
+            studentNo: this.user.studentNo
+          });
+          console.log(res.data)
+          user = res.data.data[0]
+          console.log(user)
+          this.user = {
+            studentNo: user.studentNo,
+            studentName: user.studentName,
+            loginPwd: user.loginPwd,
+            address: user.address,
+            sex: user.sex,
+            age: user.age,
+            phone: user.phone,
+          };
+          this.userDialogType = 'edit';
+          this.userDialogVisible = true;
+        } catch (error) {
+          this.handleApiError(error, '获取课程信息失败');
+        }
+
+      },
+
+      userSubmitForm() {
+        try {
+          this.userDialogType === 'register' ? this.handlerRegister() : this.updataUser();
+          this.$message.success('操作成功')
+          this.userDialogVisible = false
+        } catch (error) {
+          this.handleApiError(error, '操作失败')
+        }
+      },
+
+      async updataUser() {
+        try {
+
+          const res = await api.put('/user/change/detail', this.user)
+        } catch (error) {
+          this.handleApiError(error, '操作失败')
+        }
+      },
+      showCourseDetail(item) {
+        if (item.remainder == 0) {
+          showErrorToast("剩余人数为零，不可选")
+          return;
+        }
+        this.selectedCourse = item;
+        this.courseDetailVisible = true;
+      },
+
+      async selectCourse() {
+        try {
+          await api.post('/user/add/course', {
+            studentNo: this.user.studentNo,
+            courseNo: this.selectedCourse.courseNo
+          });
+          this.$message.success('选课成功');
+          this.fetchCourses();
+          this.courseDetailVisible = false;
+        } catch (error) {
+          this.handleApiError(error, '选课失败');
+        }
+      },
+      async fetchSelectedCourses() {
+        try {
+          const res = await api.post('/user/space/course', {
+            studentNo: this.user.studentNo
+          });
+          console.log(res.data.data)
+          this.selectedCourses = res.data.data;
+          this.selectedCoursesVisible = true;
+        } catch (error) {
+          this.handleApiError(error, '获取已选课程失败');
+        }
+      },
+
+      // 退选课程
+      async deleteSelectedCourse(courseNo) {
+        try {
+          await api.post('/user/dec/course', {
+            studentNo: this.user.studentNo,
+            courseNo: courseNo
+          });
+          this.$message.success('退选成功');
+          this.fetchCourses(); // 刷新列表
+        } catch (error) {
+          this.handleApiError(error, '退选失败');
         }
       }
+    },
+    mounted() {
+      this.page.pageNo = 1;
+      this.fetchCourses();
     }
   });
   app.use(ElementPlus);
