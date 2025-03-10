@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class Message {
-    private String opeartor;
+    private String operator;
     private Object data;
 }
