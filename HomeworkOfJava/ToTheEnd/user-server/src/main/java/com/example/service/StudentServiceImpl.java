@@ -4,13 +4,17 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.example.aop.CreateCourse;
+import com.example.aop.DeleteCourse;
 import com.example.dao.StudentMapper;
 import com.example.entity.Course;
 import com.example.entity.SelectCourse;
 import com.example.entity.Student;
 
 @Service
+@Transactional
 public class StudentServiceImpl implements StudentService{
 
     @Autowired
@@ -38,6 +42,7 @@ public class StudentServiceImpl implements StudentService{
     }
 
     @Override
+    @CreateCourse
     public Boolean addCourse(SelectCourse course){
         if(mapper.findCourse(course).getRemainder() == 0) return false;
         else mapper.addCourse(course);
@@ -45,6 +50,7 @@ public class StudentServiceImpl implements StudentService{
     }
 
     @Override
+    @DeleteCourse
     public Boolean decCourse(SelectCourse course){
         return mapper.dec(course) > 0;
     }
