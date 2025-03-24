@@ -24,6 +24,9 @@ public class ReceiveServer {
             case "c":
                 repository.save(course);
                 break;
+            case "u":
+                repository.save(course);
+                break;
             case "d":
                 repository.deleteById(course.getCourseNo());
                 break;
