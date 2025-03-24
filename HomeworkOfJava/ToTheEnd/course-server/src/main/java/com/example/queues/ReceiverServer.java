@@ -20,10 +20,10 @@ public class ReceiverServer {
         ObjectMapper objectMapper = new ObjectMapper();
         Course course = objectMapper.convertValue(message.getData(), Course.class);
         switch (message.getOperator()) {
-            case "add":
+            case "c":
                 mapper.add(course);
                 break;
-            case "decreas":
+            case "d":
                 mapper.decreas(course);
                 break;
         }
