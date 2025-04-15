@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: goods
+  datasource:
+    url: jdbc:sqlserver://localhost:1433;databaseName=product;encrypt=false;
+    username: test
+    password: 123456
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+server:
+  port: 8000
