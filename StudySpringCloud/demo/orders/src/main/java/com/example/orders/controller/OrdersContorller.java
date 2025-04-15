@@ -1,30 +1,27 @@
-package com.example.goods.controller;
-
-import org.springframework.web.bind.annotation.RestController;
-
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.example.goods.entity.Goods;
-import com.example.goods.entity.MyPage;
-import com.example.goods.entity.Query;
-import com.example.goods.entity.ResponseData;
-import com.example.goods.service.GoodsService;
-
+package com.example.orders.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.orders.entity.MyPage;
+import com.example.orders.entity.Orders;
+import com.example.orders.entity.Query;
+import com.example.orders.entity.ResponseData;
+import com.example.orders.service.OrdersService;
 
-@RestController("/goods")
-public class GoodsController {
-
+@RestController("/orders")
+public class OrdersContorller {
+    
     @Autowired
-    private GoodsService service;
+    private OrdersService service;
 
     @PostMapping("/insert")
-    public ResponseData insert(@RequestBody Goods goods) {
+    public ResponseData insert(@RequestBody Orders orders) {
         ResponseData res = new ResponseData();
-        Integer result = service.insert(goods);
+        Integer result = service.insert(orders);
         if(result == -1){
             res.setFlag(false);
             res.setMessage("插入失败");
@@ -39,7 +36,7 @@ public class GoodsController {
     @PostMapping("/find/all")
     public ResponseData findAll(@RequestBody MyPage myPage) {
         ResponseData res = new ResponseData();
-        Page<Goods> list = service.getGoods(null, myPage);
+        Page<Orders> list = service.find(null, myPage);
         if(list != null){
             res.setFlag(true);
             res.setMessage("查询成功");
@@ -54,7 +51,7 @@ public class GoodsController {
     @PostMapping("/find/list")
     public ResponseData findList(@RequestBody Query query) {
         ResponseData res = new ResponseData();
-        Page<Goods> list = service.getGoods(query.getGoods(), query.getMyPage());
+        Page<Orders> list = service.find(query.getOrders(), query.getMyPage());
         if(list != null){
             res.setFlag(true);
             res.setMessage("查询成功");
@@ -67,10 +64,11 @@ public class GoodsController {
     }
 
     @PostMapping("/find/one")
-    public ResponseData findOne(@RequestBody Goods goods) {
+    public ResponseData findOne(@RequestBody Orders orders) {
         ResponseData res = new ResponseData();
-        MyPage myPage = new MyPage(1, 1);
-        Page<Goods> list = service.getGoods(goods , myPage);
+        MyPage myPage = new MyPage(1 , 1);
+
+        Page<Orders> list = service.find(orders , myPage);
         if(list != null){
             res.setFlag(true);
             res.setMessage("查询成功");
@@ -83,9 +81,9 @@ public class GoodsController {
     }
 
     @PostMapping("/update")
-    public ResponseData update(@RequestBody Goods goods) {
+    public ResponseData update(@RequestBody Orders Orders) {
         ResponseData res = new ResponseData();
-        Integer result = service.update(goods);
+        Integer result = service.update(Orders);
         if(result == -1){
             res.setFlag(false);
             res.setMessage("修改失败");

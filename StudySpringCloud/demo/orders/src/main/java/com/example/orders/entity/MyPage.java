@@ -1,4 +1,4 @@
-package com.example.goods.entity;
+package com.example.orders.entity;
 
 import lombok.Data;
 

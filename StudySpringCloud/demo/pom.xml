@@ -16,6 +16,8 @@
 
 	<modules>
 		<module>goods</module>
+		<module>orders</module>
+		<module>eureka</module>
 	</modules>
 
 	<properties>
