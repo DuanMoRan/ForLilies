@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+  <script src="https://unpkg.com/vue@3"></script>
+  <script src="https://unpkg.com/element-plus"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+
+<style>
+  .show {
+    box-shadow: var(--el-box-shadow-dark);
+  }
+
+  .course-list {
+    margin: -10px;
+  }
+
+  .course-item {
+    padding: 10px;
+  }
+
+  .course-card {
+    position: relative;
+    padding-bottom: 100%;
+    transition: transform 0.3s ease;
+    background-image: url('images/404cat.png');
+    background-size: cover;
+    background-position: top;
+    background-repeat: no-repeat;
+
+  }
+
+  .course-name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .course-name span {
+    margin-right: auto;
+    font-weight: bold;
+  }
+
+  .course-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .pagination-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    min-height: 40px;
+  }
+
+  .el-aside {
+    height: calc(100vh - 60px);
+    background-color: #fff;
+    box-shadow: var(--el-box-shadow-light);
+  }
+
+  .el-menu {
+    margin-top: 20px;
+    border-right: none;
+  }
+
+  .el-menu-item {
+    padding: 0 10px !important;
+  }
+
+  .custom-layout {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .search-col {
+    display: flex;
+    justify-content: center;
+    margin-left: auto;
+  }
+
+  .action-col {
+    display: flex;
+    justify-content: flex-end;
+
+  }
+
+  .edit-btn {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    z-index: 2;
+    margin-right: 10px;
+    padding: 4px 8px;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+  }
+
+  .avatar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+</style>
+
+<body>
+  <div id="app">
+    <div class="common-layout">
+      <el-container>
+        <el-main>
+          <el-row :gutter="20">
+            <!-- 货物列表 -->
+            <el-col :span="12">
+              <el-table :data="goodsList" border style="width: 100%">
+                <el-table-column prop="id" label="货物ID"></el-table-column>
+                <el-table-column prop="name" label="货物名称"></el-table-column>
+                <el-table-column prop="price" label="价格"></el-table-column>
+                <el-table-column prop="weight" label="质量"></el-table-column>
+                <el-table-column prop="idWarehouse" label="仓库ID"></el-table-column>
+              </el-table>
+            </el-col>
+
+            <!-- 仓库列表 -->
+            <el-col :span="12">
+              <el-table :data="warehouseList" border style="width: 100%">
+                <el-table-column prop="id" label="仓库ID"></el-table-column>
+                <el-table-column prop="name" label="仓库名字"></el-table-column>
+                <el-table-column prop="address" label="地址"></el-table-column>
+                <el-table-column prop="number" label="存储数量"></el-table-column>
+              </el-table>
+            </el-col>
+          </el-row>
+        </el-main>
+      </el-container>
+    </div>
+  </div>
+</body>
+<script>
+  axios.defaults.baseURL = 'http://localhost:8000/'
+
+  const app = Vue.createApp({
+    data() {
+      return {
+        goodsList: [],
+        warehouseList: [],
+        fixedPage: { pages: 1, size: 10 } // 固定分页参数
+      }
+    },
+    methods: {
+      // 获取货物数据
+      async fetchGoods() {
+        try {
+          const res = await axios.post('/goods/find/all', this.fixedPage);
+          console.log(res)
+          if (res.data.flag) {
+            this.goodsList = res.data.data.records;
+          }
+        } catch (error) {
+          console.error('获取货物数据失败:', error);
+        }
+      },
+
+      // 获取仓库数据
+      async fetchWarehouses() {
+        try {
+          const res = await axios.post('/warehouse/find/all', this.fixedPage);
+          if (res.data.flag) {
+            this.warehouseList = res.data.data.records;
+          }
+        } catch (error) {
+          console.error('获取仓库数据失败:', error);
+        }
+      }
+    },
+    mounted() {
+      this.fetchGoods();
+      this.fetchWarehouses();
+    }
+  });
+  app.use(ElementPlus);
+  app.mount("#app");
+</script>
+
+</html>
